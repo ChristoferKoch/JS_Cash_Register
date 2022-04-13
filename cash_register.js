@@ -18,7 +18,7 @@ sorted in highest to lowest order, as the value of the change key.*/
 
 function checkCashRegister(price, cash, cid) {
     let changeDue = cash - price, total = 0;
-    const cashback = {status: "", change: []};
+    const cashback = {status: "", change: [], totalcid: };
     const cashValue = {
         "PENNY": .01,
         "NICKEL": .05,
@@ -30,7 +30,13 @@ function checkCashRegister(price, cash, cid) {
         "TWENTY": 20.00,
         "ONE HUNDRED": 100.00
       };//To look up the values of change in the cash register
-  
+
+    if(cash < price){
+      let remainingBalance = price - cash;
+      remainingBalance = remainingBalance.toFixed(2);
+      return ["INSUFFICIENT_PAYMENT", remainingBalance];//Since the register shouldn't be changed by this, I chose to return an array that simply says how much more is needed.
+    }
+
     for(let i = 0; i < cid.length; i++){
       total += cid[i][1];
     }
@@ -42,10 +48,14 @@ function checkCashRegister(price, cash, cid) {
     } else if(total === changeDue.toFixed(2)){//Check if the register needs to be closed
       cashback.status = "CLOSED";
       cashback.change = cid;
+      cashback.totalcid = cash;
       return cashback;
     } else{
       cashback.status = "OPEN";
     }
+
+    total += cash;
+    total = total.toFixed(2);//Updates the total cid to reflect influx of cash
   
     cid = cid.reverse();//To iterate through the cash register from highest to lowest value
     for (let element of cid) {
@@ -53,6 +63,8 @@ function checkCashRegister(price, cash, cid) {
       while (changeDue >= cashValue[element[0]] && element[1] > 0) {//Checks that the type of change can be used
         temp[1] += cashValue[element[0]];//Adds to temp a value equal to the value of the type of change each loop
         element[1] -= cashValue[element[0]];//Updates the cid for a given element
+        total -= cashValue[element[0]];//Updates total cid
+        total = total.toFixed(2);
         changeDue -= cashValue[element[0]];//Updates how much change is due
         changeDue = changeDue.toFixed(2);
       }
@@ -60,6 +72,7 @@ function checkCashRegister(price, cash, cid) {
         cashback.change.push(temp);//If a given type of change was used, the array temp is pushed
       }
     }
+    cashback.totalcid = total;
     if (changeDue > 0) {//Final check that the kind of change in the drawer is sufficient
       cashback.status = "INSUFFICIENT_FUNDS";
       cashback.change = [];
